@@ -36,7 +36,7 @@
             btnPi = new Button();
             btnPunto = new Button();
             btn0 = new Button();
-            btnMenos = new Button();
+            btnResta = new Button();
             btn3 = new Button();
             btn2 = new Button();
             btn1 = new Button();
@@ -44,7 +44,7 @@
             btn6 = new Button();
             btn5 = new Button();
             btn4 = new Button();
-            btnDivide = new Button();
+            btnDividir = new Button();
             btn9 = new Button();
             btn8 = new Button();
             btn7 = new Button();
@@ -71,7 +71,7 @@
             panel1.Controls.Add(btnPi);
             panel1.Controls.Add(btnPunto);
             panel1.Controls.Add(btn0);
-            panel1.Controls.Add(btnMenos);
+            panel1.Controls.Add(btnResta);
             panel1.Controls.Add(btn3);
             panel1.Controls.Add(btn2);
             panel1.Controls.Add(btn1);
@@ -79,7 +79,7 @@
             panel1.Controls.Add(btn6);
             panel1.Controls.Add(btn5);
             panel1.Controls.Add(btn4);
-            panel1.Controls.Add(btnDivide);
+            panel1.Controls.Add(btnDividir);
             panel1.Controls.Add(btn9);
             panel1.Controls.Add(btn8);
             panel1.Controls.Add(btn7);
@@ -157,6 +157,7 @@
             btnSuma.TabIndex = 25;
             btnSuma.Text = "+";
             btnSuma.UseVisualStyleBackColor = false;
+            btnSuma.Click += btnSuma_Click;
             // 
             // btnPi
             // 
@@ -206,20 +207,21 @@
             btn0.UseVisualStyleBackColor = false;
             btn0.Click += btn0_Click;
             // 
-            // btnMenos
+            // btnResta
             // 
-            btnMenos.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            btnMenos.BackColor = Color.FromArgb(153, 153, 153);
-            btnMenos.Cursor = Cursors.Hand;
-            btnMenos.FlatStyle = FlatStyle.Flat;
-            btnMenos.Font = new Font("Times New Roman", 15.75F);
-            btnMenos.Location = new Point(297, 323);
-            btnMenos.Margin = new Padding(0);
-            btnMenos.Name = "btnMenos";
-            btnMenos.Size = new Size(85, 47);
-            btnMenos.TabIndex = 21;
-            btnMenos.Text = "-";
-            btnMenos.UseVisualStyleBackColor = false;
+            btnResta.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            btnResta.BackColor = Color.FromArgb(153, 153, 153);
+            btnResta.Cursor = Cursors.Hand;
+            btnResta.FlatStyle = FlatStyle.Flat;
+            btnResta.Font = new Font("Times New Roman", 15.75F);
+            btnResta.Location = new Point(297, 323);
+            btnResta.Margin = new Padding(0);
+            btnResta.Name = "btnResta";
+            btnResta.Size = new Size(85, 47);
+            btnResta.TabIndex = 21;
+            btnResta.Text = "-";
+            btnResta.UseVisualStyleBackColor = false;
+            btnResta.Click += btnResta_Click;
             // 
             // btn3
             // 
@@ -283,6 +285,7 @@
             btnMulti.TabIndex = 17;
             btnMulti.Text = "*";
             btnMulti.UseVisualStyleBackColor = false;
+            btnMulti.Click += btnMulti_Click;
             // 
             // btn6
             // 
@@ -332,20 +335,21 @@
             btn4.UseVisualStyleBackColor = false;
             btn4.Click += btn4_Click;
             // 
-            // btnDivide
+            // btnDividir
             // 
-            btnDivide.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            btnDivide.BackColor = Color.FromArgb(153, 153, 153);
-            btnDivide.Cursor = Cursors.Hand;
-            btnDivide.FlatStyle = FlatStyle.Flat;
-            btnDivide.Font = new Font("Times New Roman", 15.75F);
-            btnDivide.Location = new Point(297, 217);
-            btnDivide.Margin = new Padding(0);
-            btnDivide.Name = "btnDivide";
-            btnDivide.Size = new Size(85, 47);
-            btnDivide.TabIndex = 13;
-            btnDivide.Text = "/";
-            btnDivide.UseVisualStyleBackColor = false;
+            btnDividir.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            btnDividir.BackColor = Color.FromArgb(153, 153, 153);
+            btnDividir.Cursor = Cursors.Hand;
+            btnDividir.FlatStyle = FlatStyle.Flat;
+            btnDividir.Font = new Font("Times New Roman", 15.75F);
+            btnDividir.Location = new Point(297, 217);
+            btnDividir.Margin = new Padding(0);
+            btnDividir.Name = "btnDividir";
+            btnDividir.Size = new Size(85, 47);
+            btnDividir.TabIndex = 13;
+            btnDividir.Text = "/";
+            btnDividir.UseVisualStyleBackColor = false;
+            btnDividir.Click += btnDividir_Click;
             // 
             // btn9
             // 
@@ -561,7 +565,7 @@
         private Button btnPi;
         private Button btnPunto;
         private Button btn0;
-        private Button btnMenos;
+        private Button btnResta;
         private Button btn3;
         private Button btn2;
         private Button btn1;
@@ -569,7 +573,7 @@
         private Button btn6;
         private Button btn5;
         private Button btn4;
-        private Button btnDivide;
+        private Button btnDividir;
         private Button btn9;
         private Button btn8;
         private Button btn7;

@@ -55,5 +55,21 @@ namespace Calculador
         {
             txtOpe.Text += "3.14159";
         }
+        private void btnSuma_Click(object sender, EventArgs e)
+        {
+            txtOpe.Text += "+";
+        }
+        private void btnResta_Click(object sender, EventArgs e)
+        {
+            txtOpe.Text += "-";
+        }
+        private void btnMulti_Click(object sender, EventArgs e)
+        {
+            txtOpe.Text += "*";
+        }
+        private void btnDividir_Click(object sender, EventArgs e)
+        {
+            txtOpe.Text += "/";
+        }
     }
 }
