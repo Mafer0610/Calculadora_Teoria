@@ -159,7 +159,6 @@ namespace Calculador
                 {
                     try
                     {
-                        // Reconocimiento de texto con Tesseract
                         using (var engine = new TesseractEngine("./tessdata", "eng", EngineMode.Default))
                         {
                             using (var img = Pix.LoadFromFile(openFileDialog.FileName))
@@ -168,7 +167,6 @@ namespace Calculador
                                 {
                                     string texto = page.GetText().Trim();
 
-                                    // Limpiar texto y eliminar caracteres no numéricos
                                     texto = System.Text.RegularExpressions.Regex.Replace(texto, @"[^0-9+\-*/().,]", "");
 
                                     txtOpe.Text = texto;
@@ -183,15 +181,12 @@ namespace Calculador
                 }
             }
         }
-
         private void btnAudio_Click(object sender, EventArgs e)
         {
             try
             {
-                // Inicializar reconocimiento de voz
                 recognizer = new SpeechRecognitionEngine(new System.Globalization.CultureInfo("es-ES"));
 
-                // Definir gramática de reconocimiento
                 Choices numeros = new Choices(new string[] { "cero", "uno", "dos", "tres", "cuatro", "cinco", "seis", "siete", "ocho", "nueve" });
                 Choices operadores = new Choices(new string[] { "más", "menos", "por", "dividido", "entre", "abre paréntesis", "cierra paréntesis" });
 
@@ -213,7 +208,6 @@ namespace Calculador
                 MessageBox.Show($"Error al iniciar reconocimiento de voz: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-
         private void Recognizer_SpeechRecognized(object sender, SpeechRecognizedEventArgs e)
         {
             string palabraReconocida = e.Result.Text;
@@ -224,7 +218,6 @@ namespace Calculador
                 txtOpe.Text += caracterTraducido;
             }
         }
-
         private string TraducirPalabra(string palabra)
         {
             switch (palabra.ToLower())
