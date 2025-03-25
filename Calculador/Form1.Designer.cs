@@ -56,7 +56,7 @@
             btnSIN = new Button();
             btnC = new Button();
             btnCE = new Button();
-            txtBoxRes = new TextBox();
+            txtRespu = new TextBox();
             txtOpe = new TextBox();
             panel1.SuspendLayout();
             SuspendLayout();
@@ -91,7 +91,7 @@
             panel1.Controls.Add(btnSIN);
             panel1.Controls.Add(btnC);
             panel1.Controls.Add(btnCE);
-            panel1.Controls.Add(txtBoxRes);
+            panel1.Controls.Add(txtRespu);
             panel1.Controls.Add(txtOpe);
             panel1.Location = new Point(220, 25);
             panel1.Name = "panel1";
@@ -172,6 +172,7 @@
             btnPi.TabIndex = 24;
             btnPi.Text = "π";
             btnPi.UseVisualStyleBackColor = false;
+            btnPi.Click += btnPi_Click;
             // 
             // btnPunto
             // 
@@ -187,6 +188,7 @@
             btnPunto.TabIndex = 23;
             btnPunto.Text = ".";
             btnPunto.UseVisualStyleBackColor = false;
+            btnPunto.Click += btnPunto_Click;
             // 
             // btn0
             // 
@@ -202,6 +204,7 @@
             btn0.TabIndex = 22;
             btn0.Text = "0";
             btn0.UseVisualStyleBackColor = false;
+            btn0.Click += btn0_Click;
             // 
             // btnMenos
             // 
@@ -232,6 +235,7 @@
             btn3.TabIndex = 20;
             btn3.Text = "3";
             btn3.UseVisualStyleBackColor = false;
+            btn3.Click += btn3_Click;
             // 
             // btn2
             // 
@@ -247,6 +251,7 @@
             btn2.TabIndex = 19;
             btn2.Text = "2";
             btn2.UseVisualStyleBackColor = false;
+            btn2.Click += btn2_Click;
             // 
             // btn1
             // 
@@ -262,6 +267,7 @@
             btn1.TabIndex = 18;
             btn1.Text = "1";
             btn1.UseVisualStyleBackColor = false;
+            btn1.Click += btn1_Click;
             // 
             // btnMulti
             // 
@@ -292,6 +298,7 @@
             btn6.TabIndex = 16;
             btn6.Text = "6";
             btn6.UseVisualStyleBackColor = false;
+            btn6.Click += btn6_Click;
             // 
             // btn5
             // 
@@ -307,6 +314,7 @@
             btn5.TabIndex = 15;
             btn5.Text = "5";
             btn5.UseVisualStyleBackColor = false;
+            btn5.Click += btn5_Click;
             // 
             // btn4
             // 
@@ -322,6 +330,7 @@
             btn4.TabIndex = 14;
             btn4.Text = "4";
             btn4.UseVisualStyleBackColor = false;
+            btn4.Click += btn4_Click;
             // 
             // btnDivide
             // 
@@ -352,6 +361,7 @@
             btn9.TabIndex = 12;
             btn9.Text = "9";
             btn9.UseVisualStyleBackColor = false;
+            btn9.Click += btn9_Click;
             // 
             // btn8
             // 
@@ -367,6 +377,7 @@
             btn8.TabIndex = 11;
             btn8.Text = "8";
             btn8.UseVisualStyleBackColor = false;
+            btn8.Click += btn8_Click;
             // 
             // btn7
             // 
@@ -382,6 +393,7 @@
             btn7.TabIndex = 10;
             btn7.Text = "7";
             btn7.UseVisualStyleBackColor = false;
+            btn7.Click += btn7_Click;
             // 
             // btnMR
             // 
@@ -503,14 +515,14 @@
             btnCE.Text = "CE";
             btnCE.UseVisualStyleBackColor = false;
             // 
-            // txtBoxRes
+            // txtRespu
             // 
-            txtBoxRes.Font = new Font("Times New Roman", 21.75F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            txtBoxRes.Location = new Point(30, 62);
-            txtBoxRes.Name = "txtBoxRes";
-            txtBoxRes.Size = new Size(350, 41);
-            txtBoxRes.TabIndex = 1;
-            txtBoxRes.TextAlign = HorizontalAlignment.Right;
+            txtRespu.Font = new Font("Times New Roman", 21.75F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            txtRespu.Location = new Point(30, 62);
+            txtRespu.Name = "txtRespu";
+            txtRespu.Size = new Size(350, 41);
+            txtRespu.TabIndex = 1;
+            txtRespu.TextAlign = HorizontalAlignment.Right;
             // 
             // txtOpe
             // 
@@ -539,7 +551,7 @@
 
         private Panel panel1;
         private TextBox txtOpe;
-        private TextBox txtBoxRes;
+        private TextBox txtRespu;
         private Button btnCE;
         private Button btnC;
         private Button btnCamara;
