@@ -110,8 +110,9 @@
             btnCamara.Name = "btnCamara";
             btnCamara.Size = new Size(110, 47);
             btnCamara.TabIndex = 28;
-            btnCamara.Text = "Cam";
+            btnCamara.Text = "Img";
             btnCamara.UseVisualStyleBackColor = false;
+            btnCamara.Click += btnCamara_Click;
             // 
             // btnAudio
             // 
@@ -127,6 +128,7 @@
             btnAudio.TabIndex = 27;
             btnAudio.Text = "Voz";
             btnAudio.UseVisualStyleBackColor = false;
+            btnAudio.Click += btnAudio_Click;
             // 
             // btnIgual
             // 
