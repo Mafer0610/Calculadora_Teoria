@@ -1,7 +1,12 @@
+﻿using System.Windows.Forms;
+using System.Data;
+using System.Text.RegularExpressions;
+
 namespace Calculador
 {
     public partial class Calculadora : Form
     {
+        private double memoria = 0;
         public Calculadora()
         {
             InitializeComponent();
@@ -30,7 +35,6 @@ namespace Calculador
         {
             txtOpe.Text += "4";
         }
-
         private void btn3_Click(object sender, EventArgs e)
         {
             txtOpe.Text += "3";
@@ -55,6 +59,33 @@ namespace Calculador
         {
             txtOpe.Text += "3.14159";
         }
+        private void btnAbPa_Click(object sender, EventArgs e)
+        {
+            txtOpe.Text += "(";
+        }
+        private void btnCiPa_Click(object sender, EventArgs e)
+        {
+            txtOpe.Text += ")";
+        }
+
+        private void btnC_Click(object sender, EventArgs e)
+        {
+            txtOpe.Text = "";
+            txtRespu.Text = "";
+        }
+        private void btnCE_Click(object sender, EventArgs e)
+        {
+            if (txtOpe.Text.Length > 0)
+                txtOpe.Text = txtOpe.Text.Substring(0, txtOpe.Text.Length - 1);
+        }
+        private void btnSIN_Click(object sender, EventArgs e)
+        {
+            txtOpe.Text += "sin";
+        }
+        private void btnRaiz_Click(object sender, EventArgs e)
+        {
+            txtOpe.Text += "raiz";
+        }
         private void btnSuma_Click(object sender, EventArgs e)
         {
             txtOpe.Text += "+";
@@ -70,6 +101,45 @@ namespace Calculador
         private void btnDividir_Click(object sender, EventArgs e)
         {
             txtOpe.Text += "/";
+        }
+        private void btnM_Click(object sender, EventArgs e)
+        {
+            if (double.TryParse(txtRespu.Text, out double valorMemoria))
+            {
+                memoria = valorMemoria;
+            }
+        }
+        private void btnMR_Click(object sender, EventArgs e)
+        {
+            txtOpe.Text += memoria.ToString();
+        }
+        private void btnIgual_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                string expresion = txtOpe.Text.Replace("π", Math.PI.ToString());
+
+                expresion = System.Text.RegularExpressions.Regex.Replace(
+                    expresion,
+                    @"sin\(([^)]+)\)",
+                    m => Math.Sin(Convert.ToDouble(m.Groups[1].Value) * Math.PI / 180).ToString()
+                );
+
+                expresion = System.Text.RegularExpressions.Regex.Replace(
+                    expresion,
+                    @"raiz\(([^)]+)\)",
+                    m => Math.Sqrt(Convert.ToDouble(m.Groups[1].Value)).ToString()
+                );
+
+                DataTable dt = new DataTable();
+                var resultado = dt.Compute(expresion, "");
+
+                txtRespu.Text = resultado.ToString();
+            }
+            catch (Exception)
+            {
+                txtRespu.Text = "Error";
+            }
         }
     }
 }

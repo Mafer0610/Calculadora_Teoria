@@ -142,6 +142,7 @@
             btnIgual.TabIndex = 26;
             btnIgual.Text = "=";
             btnIgual.UseVisualStyleBackColor = false;
+            btnIgual.Click += btnIgual_Click;
             // 
             // btnSuma
             // 
@@ -413,6 +414,7 @@
             btnMR.TabIndex = 9;
             btnMR.Text = "mr";
             btnMR.UseVisualStyleBackColor = false;
+            btnMR.Click += btnMR_Click;
             // 
             // btnM
             // 
@@ -428,6 +430,7 @@
             btnM.TabIndex = 8;
             btnM.Text = "m";
             btnM.UseVisualStyleBackColor = false;
+            btnM.Click += btnM_Click;
             // 
             // btnCiPa
             // 
@@ -443,6 +446,7 @@
             btnCiPa.TabIndex = 7;
             btnCiPa.Text = ")";
             btnCiPa.UseVisualStyleBackColor = false;
+            btnCiPa.Click += btnCiPa_Click;
             // 
             // btnAbPa
             // 
@@ -458,6 +462,7 @@
             btnAbPa.TabIndex = 6;
             btnAbPa.Text = "(";
             btnAbPa.UseVisualStyleBackColor = false;
+            btnAbPa.MouseCaptureChanged += btnAbPa_Click;
             // 
             // btnRaiz
             // 
@@ -473,6 +478,7 @@
             btnRaiz.TabIndex = 5;
             btnRaiz.Text = "√";
             btnRaiz.UseVisualStyleBackColor = false;
+            btnRaiz.Click += btnRaiz_Click;
             // 
             // btnSIN
             // 
@@ -488,6 +494,7 @@
             btnSIN.TabIndex = 4;
             btnSIN.Text = "sin";
             btnSIN.UseVisualStyleBackColor = false;
+            btnSIN.Click += btnSIN_Click;
             // 
             // btnC
             // 
@@ -503,6 +510,7 @@
             btnC.TabIndex = 3;
             btnC.Text = "C";
             btnC.UseVisualStyleBackColor = false;
+            btnC.Click += btnC_Click;
             // 
             // btnCE
             // 
@@ -518,21 +526,30 @@
             btnCE.TabIndex = 2;
             btnCE.Text = "CE";
             btnCE.UseVisualStyleBackColor = false;
+            btnCE.Click += btnCE_Click;
             // 
             // txtRespu
             // 
+            txtRespu.BackColor = SystemColors.Window;
+            txtRespu.Enabled = false;
             txtRespu.Font = new Font("Times New Roman", 21.75F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            txtRespu.ForeColor = Color.Black;
             txtRespu.Location = new Point(30, 62);
             txtRespu.Name = "txtRespu";
+            txtRespu.ReadOnly = true;
             txtRespu.Size = new Size(350, 41);
             txtRespu.TabIndex = 1;
             txtRespu.TextAlign = HorizontalAlignment.Right;
             // 
             // txtOpe
             // 
+            txtOpe.BackColor = SystemColors.Window;
+            txtOpe.Enabled = false;
             txtOpe.Font = new Font("Times New Roman", 21.75F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            txtOpe.ForeColor = Color.Black;
             txtOpe.Location = new Point(30, 21);
             txtOpe.Name = "txtOpe";
+            txtOpe.ReadOnly = true;
             txtOpe.Size = new Size(350, 41);
             txtOpe.TabIndex = 0;
             txtOpe.TextAlign = HorizontalAlignment.Right;
@@ -545,7 +562,7 @@
             ClientSize = new Size(834, 542);
             Controls.Add(panel1);
             Name = "Calculadora";
-            Text = "Form1";
+            Text = "Calculadora";
             panel1.ResumeLayout(false);
             panel1.PerformLayout();
             ResumeLayout(false);
