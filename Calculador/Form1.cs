@@ -159,16 +159,17 @@ namespace Calculador
                 {
                     try
                     {
-                        using (var engine = new TesseractEngine("./tessdata", "eng", EngineMode.Default))
+                        string tessDataPath = "./tessdata";
+                        MessageBox.Show($"Ruta de tessdata: {Path.GetFullPath(tessDataPath)}");
+
+                        using (var engine = new TesseractEngine(tessDataPath, "spa", EngineMode.Default))
                         {
                             using (var img = Pix.LoadFromFile(openFileDialog.FileName))
                             {
                                 using (var page = engine.Process(img))
                                 {
                                     string texto = page.GetText().Trim();
-
-                                    texto = System.Text.RegularExpressions.Regex.Replace(texto, @"[^0-9+\-*/().,]", "");
-
+                                    texto = Regex.Replace(texto, @"[^0-9+\-*/().,]", "");
                                     txtOpe.Text = texto;
                                 }
                             }
@@ -176,7 +177,8 @@ namespace Calculador
                     }
                     catch (Exception ex)
                     {
-                        MessageBox.Show($"Error al procesar imagen: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        MessageBox.Show($"Error detallado al procesar imagen: {ex.Message}\n\nStack Trace: {ex.StackTrace}",
+                            "Error Completo", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
                 }
             }
@@ -197,6 +199,9 @@ namespace Calculador
                 Grammar grammar = new Grammar(builder);
                 recognizer.LoadGrammar(grammar);
 
+                var audioDevices = WaveIn.DeviceCount;
+                MessageBox.Show($"Dispositivos de audio detectados: {audioDevices}");
+
                 recognizer.SetInputToDefaultAudioDevice();
                 recognizer.SpeechRecognized += Recognizer_SpeechRecognized;
 
@@ -205,7 +210,8 @@ namespace Calculador
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error al iniciar reconocimiento de voz: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Error detallado al iniciar reconocimiento de voz: {ex.Message}\n\nStack Trace: {ex.StackTrace}",
+                    "Error Completo", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
         private void Recognizer_SpeechRecognized(object sender, SpeechRecognizedEventArgs e)
