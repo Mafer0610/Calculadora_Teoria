@@ -1,0 +1,27 @@
+"Case Sensitive" = False
+"Start Symbol" = <E>
+
+NUMBER = {digit}+ ('.' {digit}+)?
+SIN    = 'sin'
+RAIZ   = 'raiz'
+PI     = 'pi'
+MAS   = '+'
+RESTA = '-'
+POR  = '*'
+DIVIDIR = '/'
+LPAREN = '('
+RPAREN = ')'
+
+<E> ::= <E> MAS <T>
+      | <E> RESTA <T>
+      | <T>
+
+<T> ::= <T> POR <F>
+      | <T> DIVIDIR <F>
+      | <F>
+
+<F> ::= LPAREN <E> RPAREN
+      | SIN LPAREN <E> RPAREN
+      | RAIZ LPAREN <E> RPAREN
+      | PI
+      | NUMBER

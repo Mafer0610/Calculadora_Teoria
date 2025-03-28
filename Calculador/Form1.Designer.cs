@@ -112,7 +112,6 @@
             btnCamara.TabIndex = 28;
             btnCamara.Text = "Img";
             btnCamara.UseVisualStyleBackColor = false;
-            btnCamara.Click += btnCamara_Click;
             // 
             // btnAudio
             // 
@@ -128,7 +127,6 @@
             btnAudio.TabIndex = 27;
             btnAudio.Text = "Voz";
             btnAudio.UseVisualStyleBackColor = false;
-            btnAudio.Click += btnAudio_Click;
             // 
             // btnIgual
             // 

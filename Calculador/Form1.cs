@@ -1,4 +1,5 @@
 ﻿using System.Windows.Forms;
+using GoldParser;
 using System.Data;
 using System.Text.RegularExpressions;
 using Tesseract;
@@ -10,9 +11,6 @@ namespace Calculador
     public partial class Calculadora : Form
     {
         private double memoria = 0;
-        private WaveInEvent waveIn;
-        private WaveFileWriter waveWriter;
-        private SpeechRecognitionEngine recognizer;
         public Calculadora()
         {
             InitializeComponent();
@@ -148,131 +146,6 @@ namespace Calculador
             }
         }
 
-        private void btnCamara_Click(object sender, EventArgs e)
-        {
-            using (OpenFileDialog openFileDialog = new OpenFileDialog())
-            {
-                openFileDialog.Filter = "Archivos de imagen|*.jpg;*.jpeg;*.png;*.bmp";
-                openFileDialog.Title = "Seleccionar imagen con expresión matemática";
 
-                if (openFileDialog.ShowDialog() == DialogResult.OK)
-                {
-                    try
-                    {
-                        string tessDataPath = "./tessdata";
-                        MessageBox.Show($"Ruta de tessdata: {Path.GetFullPath(tessDataPath)}");
-
-                        using (var engine = new TesseractEngine(tessDataPath, "spa", EngineMode.Default))
-                        {
-                            using (var img = Pix.LoadFromFile(openFileDialog.FileName))
-                            {
-                                using (var page = engine.Process(img))
-                                {
-                                    string texto = page.GetText().Trim();
-                                    texto = Regex.Replace(texto, @"[^0-9+\-*/().,]", "");
-                                    txtOpe.Text = texto;
-                                }
-                            }
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show($"Error detallado al procesar imagen: {ex.Message}\n\nStack Trace: {ex.StackTrace}",
-                            "Error Completo", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
-                }
-            }
-        }
-        private void btnAudio_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                recognizer = new SpeechRecognitionEngine(new System.Globalization.CultureInfo("es-ES"));
-
-                Choices numeros = new Choices(new string[] { "cero", "uno", "dos", "tres", "cuatro", "cinco", "seis", "siete", "ocho", "nueve" });
-                Choices operadores = new Choices(new string[] { "más", "menos", "por", "dividido", "entre", "abre paréntesis", "cierra paréntesis" });
-
-                GrammarBuilder builder = new GrammarBuilder();
-                builder.Append(numeros);
-                builder.Append(operadores);
-
-                Grammar grammar = new Grammar(builder);
-                recognizer.LoadGrammar(grammar);
-
-                var audioDevices = WaveIn.DeviceCount;
-                MessageBox.Show($"Dispositivos de audio detectados: {audioDevices}");
-
-                recognizer.SetInputToDefaultAudioDevice();
-                recognizer.SpeechRecognized += Recognizer_SpeechRecognized;
-
-                MessageBox.Show("Comenzando reconocimiento de voz. Hable ahora.", "Reconocimiento de Voz", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                recognizer.RecognizeAsync(RecognizeMode.Multiple);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error detallado al iniciar reconocimiento de voz: {ex.Message}\n\nStack Trace: {ex.StackTrace}",
-                    "Error Completo", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-        private void Recognizer_SpeechRecognized(object sender, SpeechRecognizedEventArgs e)
-        {
-            string palabraReconocida = e.Result.Text;
-            string caracterTraducido = TraducirPalabra(palabraReconocida);
-
-            if (!string.IsNullOrEmpty(caracterTraducido))
-            {
-                txtOpe.Text += caracterTraducido;
-            }
-        }
-        private string TraducirPalabra(string palabra)
-        {
-            switch (palabra.ToLower())
-            {
-                case "cero": return "0";
-                case "uno": return "1";
-                case "dos": return "2";
-                case "tres": return "3";
-                case "cuatro": return "4";
-                case "cinco": return "5";
-                case "seis": return "6";
-                case "siete": return "7";
-                case "ocho": return "8";
-                case "nueve": return "9";
-                case "más":
-                case "mas":
-                case "suma":
-                case "sumar": return "+";
-                case "menos":
-                case "resta":
-                case "restar": return "-";
-                case "por":
-                case "multiplicado por":
-                case "multiplicar": return "*";
-                case "entre":
-                case "dividido":
-                case "dividido por":
-                case "dividir": return "/";
-                case "igual":
-                case "resultado":
-                case "calcular": return "=";
-                case "seno": return "sin";
-                case "raíz":
-                case "raíz cuadrada":
-                case "raiz":
-                case "raiz cuadrada": return "√";
-                case "abrir paréntesis":
-                case "abre paréntesis":
-                case "parentesis abierto": return "(";
-                case "cerrar paréntesis":
-                case "cierra paréntesis":
-                case "parentesis cerrado": return ")";
-                case "punto": return ".";
-                case "pi": return "3.14159";
-                case "borrar": return "CE";
-                case "borrar todo":
-                case "limpiar": return "C";
-                default: return "";
-            }
-        }
     }
 }
