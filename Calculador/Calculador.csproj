@@ -31,6 +31,8 @@
     </Reference>
     <Reference Include="GoldParserEngine">
       <HintPath>..\..\..\..\..\GoldParserEngine_v1.13_bin\GoldParserEngine.dll</HintPath>
+      <Aliases>global</Aliases>
+      <Private>True</Private>
     </Reference>
   </ItemGroup>
 

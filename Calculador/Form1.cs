@@ -1,4 +1,8 @@
 ﻿using System.Data;
+using System.Speech.Recognition;
+using System.Text.RegularExpressions;
+using NAudio.Wave;
+using Tesseract;
 
 namespace Calculador
 {
