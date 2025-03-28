@@ -1,10 +1,4 @@
-﻿using System.Windows.Forms;
-using GoldParser;
-using System.Data;
-using System.Text.RegularExpressions;
-using Tesseract;
-using System.Speech.Recognition;
-using NAudio.Wave;
+﻿using System.Data;
 
 namespace Calculador
 {
@@ -145,7 +139,5 @@ namespace Calculador
                 txtRespu.Text = "Error";
             }
         }
-
-
     }
 }
