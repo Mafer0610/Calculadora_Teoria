@@ -1,327 +1,260 @@
-﻿using System.Runtime.Serialization;
+﻿/*
+ * PARSER PARA GRAMÁTICAS GOLD - IMPLEMENTACIÓN C#
+ * 
+ * Este código implementa un parser LALR utilizando el formato Gold Parser
+ * para análisis sintáctico de lenguajes y expresiones.
+ */
+
+using System;
+using System.IO;
 using com.calitha.commons;
 
 namespace com.calitha.goldparser
 {
-
-    [Serializable()]
+    /// <summary>
+    /// Excepción para errores de símbolos no reconocidos
+    /// </summary>
+    [Serializable]
     public class SymbolException : System.Exception
     {
-        public SymbolException(string message) : base(message)
-        {
-        }
-
-        public SymbolException(string message,
-            Exception inner) : base(message, inner)
-        {
-        }
-
-        protected SymbolException(SerializationInfo info,
-            StreamingContext context) : base(info, context)
-        {
-        }
-
+        public SymbolException(string message) : base(message) { }
+        public SymbolException(string message, Exception inner) : base(message, inner) { }
     }
 
-    [Serializable()]
+    /// <summary>
+    /// Excepción para errores en reglas gramaticales
+    /// </summary>
+    [Serializable]
     public class RuleException : System.Exception
     {
-
-        public RuleException(string message) : base(message)
-        {
-        }
-
-        public RuleException(string message,
-                             Exception inner) : base(message, inner)
-        {
-        }
-
-        protected RuleException(SerializationInfo info,
-                                StreamingContext context) : base(info, context)
-        {
-        }
-
+        public RuleException(string message) : base(message) { }
+        public RuleException(string message, Exception inner) : base(message, inner) { }
     }
 
+    /// <summary>
+    /// Enumeración de símbolos terminales de la gramática
+    /// </summary>
     enum SymbolConstants : int
     {
-        SYMBOL_EOF = 0, // (EOF)
-        SYMBOL_ERROR = 1, // (Error)
-        SYMBOL_WHITESPACE = 2, // Whitespace
-        SYMBOL_DIVIDIR = 3, // DIVIDIR
-        SYMBOL_LPAREN = 4, // LPAREN
-        SYMBOL_MAS = 5, // MAS
-        SYMBOL_NUMBER = 6, // NUMBER
-        SYMBOL_PI = 7, // PI
-        SYMBOL_POR = 8, // POR
-        SYMBOL_RAIZ = 9, // RAIZ
-        SYMBOL_RESTA = 10, // RESTA
-        SYMBOL_RPAREN = 11, // RPAREN
-        SYMBOL_SIN = 12, // SIN
-        SYMBOL_E = 13, // <E>
-        SYMBOL_F = 14, // <F>
-        SYMBOL_T = 15  // <T>
-    };
+        SYMBOL_EOF = 0,         // Fin de archivo
+        SYMBOL_ERROR = 1,       // Token de error
+        SYMBOL_WHITESPACE = 2,  // Espacios en blanco
+        SYMBOL_DIVIDIR = 3,     // Operador división (/)
+        SYMBOL_LPAREN = 4,      // Paréntesis izquierdo
+        SYMBOL_MAS = 5,         // Operador suma (+)
+        SYMBOL_NUMBER = 6,      // Números literales
+        SYMBOL_PI = 7,          // Constante PI
+        SYMBOL_POR = 8,         // Operador multiplicación (*)
+        SYMBOL_RAIZ = 9,        // Función raíz cuadrada
+        SYMBOL_RESTA = 10,      // Operador resta (-)
+        SYMBOL_RPAREN = 11,     // Paréntesis derecho
+        SYMBOL_SIN = 12,        // Función seno
+        SYMBOL_E = 13,          // No terminal E
+        SYMBOL_F = 14,          // No terminal F
+        SYMBOL_T = 15           // No terminal T
+    }
 
+    /// <summary>
+    /// Enumeración de reglas de producción de la gramática
+    /// </summary>
     enum RuleConstants : int
     {
-        RULE_E_MAS = 0, // <E> ::= <E> MAS <T>
-        RULE_E_RESTA = 1, // <E> ::= <E> RESTA <T>
-        RULE_E = 2, // <E> ::= <T>
-        RULE_T_POR = 3, // <T> ::= <T> POR <F>
-        RULE_T_DIVIDIR = 4, // <T> ::= <T> DIVIDIR <F>
-        RULE_T = 5, // <T> ::= <F>
-        RULE_F_LPAREN_RPAREN = 6, // <F> ::= LPAREN <E> RPAREN
-        RULE_F_SIN_LPAREN_RPAREN = 7, // <F> ::= SIN LPAREN <E> RPAREN
-        RULE_F_RAIZ_LPAREN_RPAREN = 8, // <F> ::= RAIZ LPAREN <E> RPAREN
-        RULE_F_PI = 9, // <F> ::= PI
-        RULE_F_NUMBER = 10  // <F> ::= NUMBER
-    };
+        RULE_E_MAS = 0,             // E → E + T
+        RULE_E_RESTA = 1,           // E → E - T
+        RULE_E = 2,                 // E → T
+        RULE_T_POR = 3,             // T → T * F
+        RULE_T_DIVIDIR = 4,         // T → T / F
+        RULE_T = 5,                 // T → F
+        RULE_F_LPAREN_RPAREN = 6,   // F → ( E )
+        RULE_F_SIN_LPAREN_RPAREN = 7, // F → sin(E)
+        RULE_F_RAIZ_LPAREN_RPAREN = 8, // F → raiz(E)
+        RULE_F_PI = 9,              // F → PI
+        RULE_F_NUMBER = 10          // F → NUMBER
+    }
 
+    /// <summary>
+    /// Implementación del parser LALR para gramáticas Gold Parser
+    /// </summary>
     public class MyParser
     {
-        private LALRParser parser;
+        private readonly LALRParser parser; // Parser LALR (inicializado en constructores)
 
+        // ========== CONSTRUCTORES ========== //
+
+        /// <summary>
+        /// Crea un parser desde un archivo .cgt (Compiled Grammar Table)
+        /// </summary>
         public MyParser(string filename)
         {
-            FileStream stream = new FileStream(filename,
-                                               FileMode.Open,
-                                               FileAccess.Read,
-                                               FileShare.Read);
-            Init(stream);
-            stream.Close();
+            using FileStream stream = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.Read);
+            this.parser = InitializeParser(stream);
         }
 
+        /// <summary>
+        /// Crea un parser desde un recurso embebido
+        /// </summary>
         public MyParser(string baseName, string resourceName)
         {
             byte[] buffer = ResourceUtil.GetByteArrayResource(
                 System.Reflection.Assembly.GetExecutingAssembly(),
                 baseName,
                 resourceName);
-            MemoryStream stream = new MemoryStream(buffer);
-            Init(stream);
-            stream.Close();
+            using MemoryStream stream = new MemoryStream(buffer);
+            this.parser = InitializeParser(stream);
         }
 
+        /// <summary>
+        /// Crea un parser desde un stream existente
+        /// </summary>
         public MyParser(Stream stream)
         {
-            Init(stream);
+            this.parser = InitializeParser(stream);
         }
 
-        private void Init(Stream stream)
+        // ========== MÉTODOS PRIVADOS ========== //
+
+        /// <summary>
+        /// Inicializa y configura el parser desde un stream
+        /// </summary>
+        private LALRParser InitializeParser(Stream stream)
         {
-            CGTReader reader = new CGTReader(stream);
-            parser = reader.CreateNewParser();
+            var reader = new CGTReader(stream);
+            var newParser = reader.CreateNewParser() ?? 
+                throw new InvalidOperationException("Error: No se pudo crear el parser");
+            
+            ConfigureParser(newParser);
+            return newParser;
+        }
+
+        /// <summary>
+        /// Configura las propiedades básicas y eventos del parser
+        /// </summary>
+        private void ConfigureParser(LALRParser parser)
+        {
+            // Configuración del comportamiento del parser
             parser.TrimReductions = false;
             parser.StoreTokens = LALRParser.StoreTokensMode.NoUserObject;
 
-            parser.OnReduce += new LALRParser.ReduceHandler(ReduceEvent);
-            parser.OnTokenRead += new LALRParser.TokenReadHandler(TokenReadEvent);
-            parser.OnAccept += new LALRParser.AcceptHandler(AcceptEvent);
-            parser.OnTokenError += new LALRParser.TokenErrorHandler(TokenErrorEvent);
-            parser.OnParseError += new LALRParser.ParseErrorHandler(ParseErrorEvent);
+            // Asignación de manejadores de eventos
+            parser.OnReduce += ReduceEvent;
+            parser.OnTokenRead += TokenReadEvent;
+            parser.OnAccept += AcceptEvent;
+            parser.OnTokenError += TokenErrorEvent;
+            parser.OnParseError += ParseErrorEvent;
         }
 
+        // ========== MÉTODOS PÚBLICOS ========== //
+
+        /// <summary>
+        /// Ejecuta el análisis sintáctico de la cadena de entrada
+        /// </summary>
         public void Parse(string source)
         {
             parser.Parse(source);
-
         }
 
+        // ========== MANEJADORES DE EVENTOS ========== //
+
+        /// <summary>
+        /// Evento: Cuando se lee un token
+        /// </summary>
         private void TokenReadEvent(LALRParser parser, TokenReadEventArgs args)
         {
             try
             {
+                // Asigna un valor semántico al token
                 args.Token.UserObject = CreateObject(args.Token);
             }
-            catch (Exception e)
+            catch
             {
-                args.Continue = false;
-                //todo: Report message to UI?
+                args.Continue = false; // Aborta el parsing en caso de error
             }
         }
 
-        private Object CreateObject(TerminalToken token)
-        {
-            switch (token.Symbol.Id)
-            {
-                case (int)SymbolConstants.SYMBOL_EOF:
-                    //(EOF)
-                    //todo: Create a new object that corresponds to the symbol
-                    return null;
-
-                case (int)SymbolConstants.SYMBOL_ERROR:
-                    //(Error)
-                    //todo: Create a new object that corresponds to the symbol
-                    return null;
-
-                case (int)SymbolConstants.SYMBOL_WHITESPACE:
-                    //Whitespace
-                    //todo: Create a new object that corresponds to the symbol
-                    return null;
-
-                case (int)SymbolConstants.SYMBOL_DIVIDIR:
-                    //DIVIDIR
-                    //todo: Create a new object that corresponds to the symbol
-                    return null;
-
-                case (int)SymbolConstants.SYMBOL_LPAREN:
-                    //LPAREN
-                    //todo: Create a new object that corresponds to the symbol
-                    return null;
-
-                case (int)SymbolConstants.SYMBOL_MAS:
-                    //MAS
-                    //todo: Create a new object that corresponds to the symbol
-                    return null;
-
-                case (int)SymbolConstants.SYMBOL_NUMBER:
-                    //NUMBER
-                    //todo: Create a new object that corresponds to the symbol
-                    return null;
-
-                case (int)SymbolConstants.SYMBOL_PI:
-                    //PI
-                    //todo: Create a new object that corresponds to the symbol
-                    return null;
-
-                case (int)SymbolConstants.SYMBOL_POR:
-                    //POR
-                    //todo: Create a new object that corresponds to the symbol
-                    return null;
-
-                case (int)SymbolConstants.SYMBOL_RAIZ:
-                    //RAIZ
-                    //todo: Create a new object that corresponds to the symbol
-                    return null;
-
-                case (int)SymbolConstants.SYMBOL_RESTA:
-                    //RESTA
-                    //todo: Create a new object that corresponds to the symbol
-                    return null;
-
-                case (int)SymbolConstants.SYMBOL_RPAREN:
-                    //RPAREN
-                    //todo: Create a new object that corresponds to the symbol
-                    return null;
-
-                case (int)SymbolConstants.SYMBOL_SIN:
-                    //SIN
-                    //todo: Create a new object that corresponds to the symbol
-                    return null;
-
-                case (int)SymbolConstants.SYMBOL_E:
-                    //<E>
-                    //todo: Create a new object that corresponds to the symbol
-                    return null;
-
-                case (int)SymbolConstants.SYMBOL_F:
-                    //<F>
-                    //todo: Create a new object that corresponds to the symbol
-                    return null;
-
-                case (int)SymbolConstants.SYMBOL_T:
-                    //<T>
-                    //todo: Create a new object that corresponds to the symbol
-                    return null;
-
-            }
-            throw new SymbolException("Unknown symbol");
-        }
-
+        /// <summary>
+        /// Evento: Cuando se reduce una producción
+        /// </summary>
         private void ReduceEvent(LALRParser parser, ReduceEventArgs args)
         {
             try
             {
+                // Asigna un valor semántico al token reducido
                 args.Token.UserObject = CreateObject(args.Token);
             }
-            catch (Exception e)
+            catch
             {
-                args.Continue = false;
-                //todo: Report message to UI?
+                args.Continue = false; // Aborta el parsing en caso de error
             }
         }
 
-        public static Object CreateObject(NonterminalToken token)
-        {
-            switch (token.Rule.Id)
-            {
-                case (int)RuleConstants.RULE_E_MAS:
-                    //<E> ::= <E> MAS <T>
-                    //todo: Create a new object using the stored user objects.
-                    return null;
-
-                case (int)RuleConstants.RULE_E_RESTA:
-                    //<E> ::= <E> RESTA <T>
-                    //todo: Create a new object using the stored user objects.
-                    return null;
-
-                case (int)RuleConstants.RULE_E:
-                    //<E> ::= <T>
-                    //todo: Create a new object using the stored user objects.
-                    return null;
-
-                case (int)RuleConstants.RULE_T_POR:
-                    //<T> ::= <T> POR <F>
-                    //todo: Create a new object using the stored user objects.
-                    return null;
-
-                case (int)RuleConstants.RULE_T_DIVIDIR:
-                    //<T> ::= <T> DIVIDIR <F>
-                    //todo: Create a new object using the stored user objects.
-                    return null;
-
-                case (int)RuleConstants.RULE_T:
-                    //<T> ::= <F>
-                    //todo: Create a new object using the stored user objects.
-                    return null;
-
-                case (int)RuleConstants.RULE_F_LPAREN_RPAREN:
-                    //<F> ::= LPAREN <E> RPAREN
-                    //todo: Create a new object using the stored user objects.
-                    return null;
-
-                case (int)RuleConstants.RULE_F_SIN_LPAREN_RPAREN:
-                    //<F> ::= SIN LPAREN <E> RPAREN
-                    //todo: Create a new object using the stored user objects.
-                    return null;
-
-                case (int)RuleConstants.RULE_F_RAIZ_LPAREN_RPAREN:
-                    //<F> ::= RAIZ LPAREN <E> RPAREN
-                    //todo: Create a new object using the stored user objects.
-                    return null;
-
-                case (int)RuleConstants.RULE_F_PI:
-                    //<F> ::= PI
-                    //todo: Create a new object using the stored user objects.
-                    return null;
-
-                case (int)RuleConstants.RULE_F_NUMBER:
-                    //<F> ::= NUMBER
-                    //todo: Create a new object using the stored user objects.
-                    return null;
-
-            }
-            throw new RuleException("Unknown rule");
-        }
-
+        /// <summary>
+        /// Evento: Cuando se acepta la entrada
+        /// </summary>
         private void AcceptEvent(LALRParser parser, AcceptEventArgs args)
         {
-            //todo: Use your fully reduced args.Token.UserObject
+            // args.Token.UserObject contiene el resultado final del parsing
         }
 
+        /// <summary>
+        /// Evento: Error en token
+        /// </summary>
         private void TokenErrorEvent(LALRParser parser, TokenErrorEventArgs args)
         {
-            string message = "Token error with input: '" + args.Token.ToString() + "'";
-            //todo: Report message to UI?
+            throw new SymbolException($"Error en token: '{args.Token}'");
         }
 
+        /// <summary>
+        /// Evento: Error de sintaxis
+        /// </summary>
         private void ParseErrorEvent(LALRParser parser, ParseErrorEventArgs args)
         {
-            string message = "Parse error caused by token: '" + args.UnexpectedToken.ToString() + "'";
-            //todo: Report message to UI?
+            throw new RuleException($"Error de sintaxis: '{args.UnexpectedToken}'");
         }
 
+        // ========== MÉTODOS SEMÁNTICOS ========== //
 
+        /// <summary>
+        /// Crea objetos semánticos para tokens terminales
+        /// </summary>
+        private object? CreateObject(TerminalToken token)
+        {
+            return token.Symbol.Id switch
+            {
+                (int)SymbolConstants.SYMBOL_NUMBER => double.Parse(token.Text), // Convierte a número
+                (int)SymbolConstants.SYMBOL_PI => Math.PI,                     // Constante PI
+                (int)SymbolConstants.SYMBOL_MAS => "+",                        // Operador como string
+                (int)SymbolConstants.SYMBOL_RESTA => "-",
+                (int)SymbolConstants.SYMBOL_POR => "*",
+                (int)SymbolConstants.SYMBOL_DIVIDIR => "/",
+                (int)SymbolConstants.SYMBOL_SIN => "sin",
+                (int)SymbolConstants.SYMBOL_RAIZ => "sqrt",
+                _ => null // Valor por defecto para otros símbolos
+            };
+        }
+
+        /// <summary>
+        /// Crea objetos semánticos para tokens no terminales (aplicando reglas)
+        /// </summary>
+        public static object CreateObject(NonterminalToken token)
+        {
+            return token.Rule.Id switch
+            {
+                // Operaciones aritméticas
+                (int)RuleConstants.RULE_E_MAS => (double)token.Tokens[0].UserObject! + (double)token.Tokens[2].UserObject!,
+                (int)RuleConstants.RULE_E_RESTA => (double)token.Tokens[0].UserObject! - (double)token.Tokens[2].UserObject!,
+                (int)RuleConstants.RULE_T_POR => (double)token.Tokens[0].UserObject! * (double)token.Tokens[2].UserObject!,
+                (int)RuleConstants.RULE_T_DIVIDIR => (double)token.Tokens[0].UserObject! / (double)token.Tokens[2].UserObject!,
+                
+                // Funciones matemáticas
+                (int)RuleConstants.RULE_F_SIN_LPAREN_RPAREN => Math.Sin((double)token.Tokens[2].UserObject!),
+                (int)RuleConstants.RULE_F_RAIZ_LPAREN_RPAREN => Math.Sqrt((double)token.Tokens[2].UserObject!),
+                
+                // Valores literales
+                (int)RuleConstants.RULE_F_PI => Math.PI,
+                (int)RuleConstants.RULE_F_NUMBER => token.Tokens[0].UserObject!,
+                
+                _ => throw new RuleException("Regla gramatical no implementada")
+            };
+        }
     }
 }
