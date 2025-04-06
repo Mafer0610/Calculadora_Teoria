@@ -191,6 +191,7 @@ namespace Calculador
                 MostrarMensaje("Micrófono desactivado");
             }
         }
+        
         // Métodos existentes de los botones (se mantienen igual)
         private void btn9_Click(object sender, EventArgs e)
         {
