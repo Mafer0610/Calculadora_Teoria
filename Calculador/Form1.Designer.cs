@@ -58,7 +58,12 @@
             btnCE = new Button();
             txtRespu = new TextBox();
             txtOpe = new TextBox();
+            pictureBoxCamara = new PictureBox();
+            btnApagar = new Button();
+            btnAnalizar = new Button();
+            btnPausar = new Button();
             panel1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)pictureBoxCamara).BeginInit();
             SuspendLayout();
             // 
             // panel1
@@ -112,6 +117,7 @@
             btnCamara.TabIndex = 28;
             btnCamara.Text = "Img";
             btnCamara.UseVisualStyleBackColor = false;
+            btnCamara.Click += btnCamara_Click;
             // 
             // btnAudio
             // 
@@ -554,17 +560,63 @@
             txtOpe.TabIndex = 0;
             txtOpe.TextAlign = HorizontalAlignment.Right;
             // 
+            // pictureBoxCamara
+            // 
+            pictureBoxCamara.Location = new Point(636, 60);
+            pictureBoxCamara.Name = "pictureBoxCamara";
+            pictureBoxCamara.Size = new Size(276, 210);
+            pictureBoxCamara.TabIndex = 1;
+            pictureBoxCamara.TabStop = false;
+            pictureBoxCamara.Visible = false;
+            // 
+            // btnApagar
+            // 
+            btnApagar.Location = new Point(744, 334);
+            btnApagar.Name = "btnApagar";
+            btnApagar.Size = new Size(75, 23);
+            btnApagar.TabIndex = 2;
+            btnApagar.Text = "Apagar";
+            btnApagar.UseVisualStyleBackColor = true;
+            btnApagar.Visible = false;
+            btnApagar.Click += btnApagar_Click;
+            // 
+            // btnAnalizar
+            // 
+            btnAnalizar.Location = new Point(818, 295);
+            btnAnalizar.Name = "btnAnalizar";
+            btnAnalizar.Size = new Size(75, 23);
+            btnAnalizar.TabIndex = 3;
+            btnAnalizar.Text = "Analizar";
+            btnAnalizar.UseVisualStyleBackColor = true;
+            btnAnalizar.Visible = false;
+            btnAnalizar.Click += btnAnalizar_Click;
+            // 
+            // btnPausar
+            // 
+            btnPausar.Location = new Point(670, 295);
+            btnPausar.Name = "btnPausar";
+            btnPausar.Size = new Size(75, 23);
+            btnPausar.TabIndex = 4;
+            btnPausar.Text = "Pausar";
+            btnPausar.UseVisualStyleBackColor = true;
+            btnPausar.Visible = false;
+            // 
             // Calculadora
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(0, 48, 73);
-            ClientSize = new Size(834, 542);
+            ClientSize = new Size(924, 542);
+            Controls.Add(btnPausar);
+            Controls.Add(btnAnalizar);
+            Controls.Add(btnApagar);
+            Controls.Add(pictureBoxCamara);
             Controls.Add(panel1);
             Name = "Calculadora";
             Text = "Calculadora";
             panel1.ResumeLayout(false);
             panel1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)pictureBoxCamara).EndInit();
             ResumeLayout(false);
         }
 
@@ -600,5 +652,9 @@
         private Button btnAbPa;
         private Button btnRaiz;
         private Button btnSIN;
+        private PictureBox pictureBoxCamara;
+        private Button btnApagar;
+        private Button btnAnalizar;
+        private Button btnPausar;
     }
 }

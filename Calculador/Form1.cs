@@ -1,7 +1,10 @@
-﻿using System.Data;
+﻿using System;
+using System.Data;
 using System.Speech.Recognition;
 using System.Text.RegularExpressions;
-
+using AForge.Video;
+using AForge.Video.DirectShow;
+using Tesseract;
 namespace Calculador
 {
     public partial class Calculadora : Form
@@ -9,6 +12,9 @@ namespace Calculador
         private double memoria = 0;
         private SpeechRecognitionEngine? reconocedor;
         private bool escuchando = false;
+        private FilterInfoCollection? dispositivosVideo;
+        private VideoCaptureDevice? fuenteVideo;
+        private Bitmap? imagenActual;
 
         public Calculadora()
         {
@@ -30,7 +36,7 @@ namespace Calculador
 
                 // 2. Configurar reconocedor
                 reconocedor = new SpeechRecognitionEngine(new System.Globalization.CultureInfo("es-ES"));
-                
+
                 // 3. Mejorar gramática con dictado
                 var gramatica = new DictationGrammar();
                 reconocedor.LoadGrammar(gramatica);
@@ -42,7 +48,7 @@ namespace Calculador
                 // 5. Configurar eventos
                 reconocedor.SpeechRecognized += Reconocedor_SpeechRecognized;
                 reconocedor.SpeechRecognitionRejected += Reconocedor_Rechazado;
-                
+
                 // 6. Configurar parámetros de audio
                 reconocedor.SetInputToDefaultAudioDevice();
                 reconocedor.BabbleTimeout = TimeSpan.FromSeconds(2);
@@ -58,7 +64,7 @@ namespace Calculador
         {
             var numeros = new Choices("0", "1", "2", "3", "4", "5", "6", "7", "8", "9");
             var operaciones = new Choices("más", "menos", "por", "dividido", "entre", "sin", "raíz", "sqrt");
-            var comandos = new Choices("punto", "pi", "abre paréntesis", "cierra paréntesis", 
+            var comandos = new Choices("punto", "pi", "abre paréntesis", "cierra paréntesis",
                                     "borrar", "borra todo", "igual", "memoria", "recupera memoria",
                                     "clear", "eliminar");
 
@@ -87,7 +93,7 @@ namespace Calculador
             if (e.Result == null || e.Result.Confidence < 0.7) return;
 
             string texto = e.Result.Text.ToLower();
-            
+
             Invoke((MethodInvoker)(() => ProcesarComandoVoz(texto)));
         }
 
@@ -95,8 +101,16 @@ namespace Calculador
         {
             switch (comando)
             {
-                case "0": case "1": case "2": case "3": case "4":
-                case "5": case "6": case "7": case "8": case "9":
+                case "0":
+                case "1":
+                case "2":
+                case "3":
+                case "4":
+                case "5":
+                case "6":
+                case "7":
+                case "8":
+                case "9":
                     txtOpe.Text += comando;
                     break;
                 case "punto":
@@ -120,20 +134,24 @@ namespace Calculador
                 case "por":
                     txtOpe.Text += "*";
                     break;
-                case "dividido": case "entre":
+                case "dividido":
+                case "entre":
                     txtOpe.Text += "/";
                     break;
                 case "sin":
                     txtOpe.Text += "sin";
                     break;
-                case "raíz": case "sqrt":
+                case "raíz":
+                case "sqrt":
                     txtOpe.Text += "raiz";
                     break;
-                case "borrar": case "eliminar":
+                case "borrar":
+                case "eliminar":
                     if (txtOpe.Text.Length > 0)
                         txtOpe.Text = txtOpe.Text[..^1];
                     break;
-                case "borra todo": case "clear":
+                case "borra todo":
+                case "clear":
                     txtOpe.Text = "";
                     txtRespu.Text = "";
                     break;
@@ -191,7 +209,7 @@ namespace Calculador
                 MostrarMensaje("Micrófono desactivado");
             }
         }
-        
+
         // Métodos existentes de los botones (se mantienen igual)
         private void btn9_Click(object sender, EventArgs e)
         {
@@ -330,5 +348,79 @@ namespace Calculador
             reconocedor?.RecognizeAsyncStop();
             reconocedor?.Dispose();
         }
+
+        private void btnCamara_Click(object sender, EventArgs e)
+        {
+            IniciarCamara();
+            btnAnalizar.Visible = true;
+            btnApagar.Visible = true;
+            btnPausar.Visible = true;
+            pictureBoxCamara.Visible = true;
+        }
+        private void btnApagar_Click(object sender, EventArgs e)
+        {
+            DetenerCamara();
+            btnAnalizar.Visible = false;
+            btnApagar.Visible = false;
+            btnPausar.Visible = false;
+            pictureBoxCamara.Visible = false;
+        }
+        private void btnAnalizar_Click(object sender, EventArgs e)
+        {
+            CapturarYLeerTexto();
+        }
+
+        private void IniciarCamara()
+        {
+            dispositivosVideo = new FilterInfoCollection(FilterCategory.VideoInputDevice);
+            if (dispositivosVideo.Count == 0)
+            {
+                MessageBox.Show("No se detectó cámara.");
+                return;
+            }
+
+            fuenteVideo = new VideoCaptureDevice(dispositivosVideo[0].MonikerString);
+            fuenteVideo.NewFrame += new NewFrameEventHandler(Video_NuevoFrame);
+            fuenteVideo.Start();
+        }
+
+        private void Video_NuevoFrame(object sender, NewFrameEventArgs eventArgs)
+        {
+            imagenActual?.Dispose();
+            imagenActual = (Bitmap)eventArgs.Frame.Clone();
+            pictureBoxCamara.Image = (Bitmap)imagenActual.Clone();
+        }
+        private void CapturarYLeerTexto()
+        {
+            if (imagenActual == null)
+            {
+                MessageBox.Show("No hay imagen para procesar.");
+                return;
+            }
+
+            try
+            {
+                using var engine = new TesseractEngine(@"./tessdata", "spa", EngineMode.Default);
+                using var img = PixConverter.ToPix(imagenActual);
+                using var page = engine.Process(img);
+                string textoReconocido = page.GetText();
+
+                txtOpe.Text = textoReconocido.Replace("\n", "").Replace(" ", "");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error al leer texto: " + ex.Message);
+            }
+        }
+        private void DetenerCamara()
+        {
+            if (fuenteVideo != null && fuenteVideo.IsRunning)
+            {
+                fuenteVideo.SignalToStop();
+                fuenteVideo.WaitForStop();
+            }
+        }
+
+
     }
 }
