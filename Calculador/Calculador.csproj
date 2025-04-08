@@ -1,16 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0-windows</TargetFramework>
+    <TargetFramework>net9.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
-
-  <ItemGroup>
-    <None Remove="tessdata\spa.traineddata" />
-  </ItemGroup>
 
   <ItemGroup>
     <Content Include="tessdata\spa.traineddata">
@@ -20,20 +17,22 @@
 
   <ItemGroup>
     <PackageReference Include="NAudio" Version="2.2.1" />
-    <PackageReference Include="System.Speech" Version="9.0.3" />
+    <PackageReference Include="System.Speech" Version="8.0.0" />
     <PackageReference Include="Tesseract" Version="5.2.0" />
-    <PackageReference Include="TesseractOCR" Version="5.4.2" />
+    <!-- Elimina TesseractOCR si no lo usas (duplicado con Tesseract) -->
   </ItemGroup>
 
-  <ItemGroup>
+  <!-- Solo si tienes estas DLLs -->
+  <ItemGroup Condition="Exists('lib\CalithaLib.dll')">
     <Reference Include="CalithaLib">
-      <HintPath>..\..\..\..\..\GoldParserEngine_v1.13_bin\CalithaLib.dll</HintPath>
-    </Reference>
-    <Reference Include="GoldParserEngine">
-      <HintPath>..\..\..\..\..\GoldParserEngine_v1.13_bin\GoldParserEngine.dll</HintPath>
-      <Aliases>global</Aliases>
-      <Private>True</Private>
+      <HintPath>lib\CalithaLib.dll</HintPath>
     </Reference>
   </ItemGroup>
 
+  <ItemGroup Condition="Exists('lib\GoldParserEngine.dll')">
+    <Reference Include="GoldParserEngine">
+      <HintPath>lib\GoldParserEngine.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+  </ItemGroup>
 </Project>

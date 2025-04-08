@@ -1,5 +1,6 @@
 ﻿using System.Data;
 using System.Speech.Recognition;
+using System.Globalization;
 using System.Text.RegularExpressions;
 
 namespace Calculador
@@ -14,39 +15,37 @@ namespace Calculador
         {
             InitializeComponent();
             ConfigurarReconocimientoVoz();
+            
+            btnAudio.Click += BtnAudio_Click;
         }
 
         private void ConfigurarReconocimientoVoz()
         {
             try
             {
-                // 1. Verificar soporte de voz
-                if (!SpeechRecognitionEngine.InstalledRecognizers()
-                    .Any(r => r.Culture.TwoLetterISOLanguageName == "es"))
+                if (!SpeechRecognitionEngine.InstalledRecognizers().Any())
                 {
-                    DesactivarFuncionVoz("Idioma no soportado");
+                    DesactivarFuncionVoz("No hay reconocedores instalados");
                     return;
                 }
 
-                // 2. Configurar reconocedor
-                reconocedor = new SpeechRecognitionEngine(new System.Globalization.CultureInfo("es-ES"));
+                var recognizerInfo = SpeechRecognitionEngine.InstalledRecognizers()
+                    .FirstOrDefault(r => r.Culture.TwoLetterISOLanguageName == "es") ?? 
+                    SpeechRecognitionEngine.InstalledRecognizers().First();
+
+                reconocedor = new SpeechRecognitionEngine(recognizerInfo.Id);
                 
-                // 3. Mejorar gramática con dictado
-                var gramatica = new DictationGrammar();
-                reconocedor.LoadGrammar(gramatica);
+                var gramatica = new GrammarBuilder();
+                gramatica.Append(CrearGramaticaCalculadora());
+                gramatica.Culture = recognizerInfo.Culture;
 
-                // 4. Agregar gramática específica
-                var gramaticaCalculadora = CrearGramaticaCalculadora();
-                reconocedor.LoadGrammar(gramaticaCalculadora);
-
-                // 5. Configurar eventos
+                reconocedor.LoadGrammar(new Grammar(gramatica));
                 reconocedor.SpeechRecognized += Reconocedor_SpeechRecognized;
                 reconocedor.SpeechRecognitionRejected += Reconocedor_Rechazado;
                 
-                // 6. Configurar parámetros de audio
                 reconocedor.SetInputToDefaultAudioDevice();
-                reconocedor.BabbleTimeout = TimeSpan.FromSeconds(2);
-                reconocedor.InitialSilenceTimeout = TimeSpan.FromSeconds(3);
+                reconocedor.BabbleTimeout = TimeSpan.FromSeconds(1.5);
+                reconocedor.InitialSilenceTimeout = TimeSpan.FromSeconds(2);
             }
             catch (Exception ex)
             {
@@ -54,26 +53,30 @@ namespace Calculador
             }
         }
 
-        private Grammar CrearGramaticaCalculadora()
+        private Choices CrearGramaticaCalculadora()
         {
             var numeros = new Choices("0", "1", "2", "3", "4", "5", "6", "7", "8", "9");
             var operaciones = new Choices("más", "menos", "por", "dividido", "entre", "sin", "raíz", "sqrt");
             var comandos = new Choices("punto", "pi", "abre paréntesis", "cierra paréntesis", 
-                                    "borrar", "borra todo", "igual", "memoria", "recupera memoria",
-                                    "clear", "eliminar");
+                                     "borrar", "borra todo", "igual", "memoria", "recupera memoria",
+                                     "clear", "eliminar");
 
-            var gramatica = new GrammarBuilder();
-            gramatica.Append(new Choices(numeros, operaciones, comandos));
-            gramatica.Culture = new System.Globalization.CultureInfo("es-ES");
-
-            return new Grammar(gramatica);
+            return new Choices(numeros, operaciones, comandos);
         }
 
         private void DesactivarFuncionVoz(string mensaje)
         {
+            if (btnAudio.InvokeRequired)
+            {
+                btnAudio.Invoke(new Action(() => DesactivarFuncionVoz(mensaje)));
+                return;
+            }
+            
             btnAudio.Enabled = false;
             btnAudio.Text = mensaje;
             btnAudio.BackColor = Color.LightGray;
+            
+            reconocedor?.Dispose();
             reconocedor = null;
         }
 
@@ -84,11 +87,13 @@ namespace Calculador
 
         private void Reconocedor_SpeechRecognized(object? sender, SpeechRecognizedEventArgs e)
         {
-            if (e.Result == null || e.Result.Confidence < 0.7) return;
-
-            string texto = e.Result.Text.ToLower();
-            
-            Invoke((MethodInvoker)(() => ProcesarComandoVoz(texto)));
+            this.Invoke((MethodInvoker)(() => 
+            {
+                if (e.Result?.Text != null)
+                {
+                    ProcesarComandoVoz(e.Result.Text.ToLower());
+                }
+            }));
         }
 
         private void ProcesarComandoVoz(string comando)
@@ -103,7 +108,7 @@ namespace Calculador
                     txtOpe.Text += ".";
                     break;
                 case "pi":
-                    txtOpe.Text += "3.14159";
+                    txtOpe.Text += Math.PI.ToString();
                     break;
                 case "abre paréntesis":
                     txtOpe.Text += "(";
@@ -124,10 +129,10 @@ namespace Calculador
                     txtOpe.Text += "/";
                     break;
                 case "sin":
-                    txtOpe.Text += "sin";
+                    txtOpe.Text += "sin(";
                     break;
                 case "raíz": case "sqrt":
-                    txtOpe.Text += "raiz";
+                    txtOpe.Text += "sqrt(";
                     break;
                 case "borrar": case "eliminar":
                     if (txtOpe.Text.Length > 0)
@@ -154,11 +159,19 @@ namespace Calculador
 
         private void MostrarMensaje(string mensaje)
         {
+            if (txtRespu.InvokeRequired)
+            {
+                txtRespu.Invoke(new Action(() => MostrarMensaje(mensaje)));
+                return;
+            }
+            
             txtRespu.Text = mensaje;
-            Task.Delay(2000).ContinueWith(_ => Invoke((MethodInvoker)(() => txtRespu.Text = "")));
+            var timer = new System.Windows.Forms.Timer { Interval = 2000 };
+            timer.Tick += (s, e) => { txtRespu.Text = ""; timer.Stop(); };
+            timer.Start();
         }
 
-        private void btnAudio_Click(object? sender, EventArgs e)
+        private void BtnAudio_Click(object? sender, EventArgs e)
         {
             if (reconocedor == null)
             {
@@ -166,14 +179,15 @@ namespace Calculador
                 return;
             }
 
-            if (!escuchando)
+            escuchando = !escuchando;
+            
+            if (escuchando)
             {
                 try
                 {
                     reconocedor.RecognizeAsync(RecognizeMode.Multiple);
                     btnAudio.BackColor = Color.LimeGreen;
                     btnAudio.Text = "Escuchando...";
-                    escuchando = true;
                     MostrarMensaje("Di tu operación (ej: '5 más 3 igual')");
                 }
                 catch (Exception ex)
@@ -184,132 +198,67 @@ namespace Calculador
             }
             else
             {
-                reconocedor.RecognizeAsyncStop();
+                reconocedor?.RecognizeAsyncStop();
                 btnAudio.BackColor = Color.FromArgb(153, 153, 153);
                 btnAudio.Text = "Voz";
-                escuchando = false;
                 MostrarMensaje("Micrófono desactivado");
             }
         }
-        
-        // Métodos existentes de los botones (se mantienen igual)
-        private void btn9_Click(object sender, EventArgs e)
-        {
-            txtOpe.Text += "9";
-        }
-        private void btn8_Click(object sender, EventArgs e)
-        {
-            txtOpe.Text += "8";
-        }
-        private void btn7_Click(object sender, EventArgs e)
-        {
-            txtOpe.Text += "7";
-        }
-        private void btn6_Click(object sender, EventArgs e)
-        {
-            txtOpe.Text += "6";
-        }
-        private void btn5_Click(object sender, EventArgs e)
-        {
-            txtOpe.Text += "5";
-        }
-        private void btn4_Click(object sender, EventArgs e)
-        {
-            txtOpe.Text += "4";
-        }
-        private void btn3_Click(object sender, EventArgs e)
-        {
-            txtOpe.Text += "3";
-        }
-        private void btn2_Click(object sender, EventArgs e)
-        {
-            txtOpe.Text += "2";
-        }
-        private void btn1_Click(object sender, EventArgs e)
-        {
-            txtOpe.Text += "1";
-        }
-        private void btn0_Click(object sender, EventArgs e)
-        {
-            txtOpe.Text += "0";
-        }
-        private void btnPunto_Click(object sender, EventArgs e)
-        {
-            txtOpe.Text += ".";
-        }
-        private void btnPi_Click(object sender, EventArgs e)
-        {
-            txtOpe.Text += "3.14159";
-        }
-        private void btnAbPa_Click(object sender, EventArgs e)
-        {
-            txtOpe.Text += "(";
-        }
-        private void btnCiPa_Click(object sender, EventArgs e)
-        {
-            txtOpe.Text += ")";
-        }
 
-        private void btnC_Click(object sender, EventArgs e)
-        {
-            txtOpe.Text = "";
-            txtRespu.Text = "";
-        }
+        // Métodos de los botones 
+        private void btn9_Click(object sender, EventArgs e) => txtOpe.Text += "9";
+        private void btn8_Click(object sender, EventArgs e) => txtOpe.Text += "8";
+        private void btn7_Click(object sender, EventArgs e) => txtOpe.Text += "7";
+        private void btn6_Click(object sender, EventArgs e) => txtOpe.Text += "6";
+        private void btn5_Click(object sender, EventArgs e) => txtOpe.Text += "5";
+        private void btn4_Click(object sender, EventArgs e) => txtOpe.Text += "4";
+        private void btn3_Click(object sender, EventArgs e) => txtOpe.Text += "3";
+        private void btn2_Click(object sender, EventArgs e) => txtOpe.Text += "2";
+        private void btn1_Click(object sender, EventArgs e) => txtOpe.Text += "1";
+        private void btn0_Click(object sender, EventArgs e) => txtOpe.Text += "0";
+        private void btnPunto_Click(object sender, EventArgs e) => txtOpe.Text += ".";
+        private void btnPi_Click(object sender, EventArgs e) => txtOpe.Text += Math.PI.ToString();
+        private void btnAbPa_Click(object sender, EventArgs e) => txtOpe.Text += "(";
+        private void btnCiPa_Click(object sender, EventArgs e) => txtOpe.Text += ")";
+        private void btnC_Click(object sender, EventArgs e) { txtOpe.Text = ""; txtRespu.Text = ""; }
         private void btnCE_Click(object sender, EventArgs e)
         {
             if (txtOpe.Text.Length > 0)
-                txtOpe.Text = txtOpe.Text.Substring(0, txtOpe.Text.Length - 1);
+                txtOpe.Text = txtOpe.Text[..^1];
         }
-        private void btnSIN_Click(object sender, EventArgs e)
-        {
-            txtOpe.Text += "sin";
-        }
-        private void btnRaiz_Click(object sender, EventArgs e)
-        {
-            txtOpe.Text += "raiz";
-        }
-        private void btnSuma_Click(object sender, EventArgs e)
-        {
-            txtOpe.Text += "+";
-        }
-        private void btnResta_Click(object sender, EventArgs e)
-        {
-            txtOpe.Text += "-";
-        }
-        private void btnMulti_Click(object sender, EventArgs e)
-        {
-            txtOpe.Text += "*";
-        }
-        private void btnDividir_Click(object sender, EventArgs e)
-        {
-            txtOpe.Text += "/";
-        }
+        private void btnSIN_Click(object sender, EventArgs e) => txtOpe.Text += "sin(";
+        private void btnRaiz_Click(object sender, EventArgs e) => txtOpe.Text += "sqrt(";
+        private void btnSuma_Click(object sender, EventArgs e) => txtOpe.Text += "+";
+        private void btnResta_Click(object sender, EventArgs e) => txtOpe.Text += "-";
+        private void btnMulti_Click(object sender, EventArgs e) => txtOpe.Text += "*";
+        private void btnDividir_Click(object sender, EventArgs e) => txtOpe.Text += "/";
+        
         private void btnM_Click(object sender, EventArgs e)
         {
             if (double.TryParse(txtRespu.Text, out double valorMemoria))
             {
                 memoria = valorMemoria;
+                MostrarMensaje("Valor guardado en memoria");
             }
         }
-        private void btnMR_Click(object sender, EventArgs e)
-        {
-            txtOpe.Text += memoria.ToString();
-        }
+        
+        private void btnMR_Click(object sender, EventArgs e) => txtOpe.Text += memoria.ToString();
+        
         private void btnIgual_Click(object sender, EventArgs e)
         {
             try
             {
                 string expresion = txtOpe.Text.Replace("π", Math.PI.ToString());
 
-                expresion = System.Text.RegularExpressions.Regex.Replace(
+                expresion = Regex.Replace(
                     expresion,
                     @"sin\(([^)]+)\)",
                     m => Math.Sin(Convert.ToDouble(m.Groups[1].Value) * Math.PI / 180).ToString()
                 );
 
-                expresion = System.Text.RegularExpressions.Regex.Replace(
+                expresion = Regex.Replace(
                     expresion,
-                    @"raiz\(([^)]+)\)",
+                    @"sqrt\(([^)]+)\)",
                     m => Math.Sqrt(Convert.ToDouble(m.Groups[1].Value)).ToString()
                 );
 
@@ -326,9 +275,9 @@ namespace Calculador
 
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
-            base.OnFormClosing(e);
             reconocedor?.RecognizeAsyncStop();
             reconocedor?.Dispose();
+            base.OnFormClosing(e);
         }
     }
 }
